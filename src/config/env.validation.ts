@@ -3,7 +3,9 @@ import z from 'zod';
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().max(65535).min(0),
-  DATABASE_URL: z.url()
+  DATABASE_URL: z.url(),
+  ACCESS_TOKEN_SECRET: z.string().min(32),
+  ACCESS_TOKEN_EXPIRES_IN: z.coerce.number().int().positive()
 });
 
 export function validate(config: Record<string, any>) {

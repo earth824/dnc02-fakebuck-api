@@ -3,6 +3,7 @@ import { UserCreateInput } from './types/user.type';
 import { BcryptService } from '@/infrastructure/hash/bcrypt.service';
 import { PrismaService } from '@/database/prisma.service';
 import { PrismaClientKnownRequestError } from '@/database/generated/prisma/internal/prismaNamespace';
+import { User } from '@/database/generated/prisma/client';
 
 @Injectable()
 export class UserService {
@@ -24,5 +25,9 @@ export class UserService {
       }
       throw error;
     }
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 }
