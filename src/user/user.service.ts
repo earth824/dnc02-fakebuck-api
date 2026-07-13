@@ -2,7 +2,10 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { UserCreateInput } from './types/user.type';
 import { BcryptService } from '@/infrastructure/hash/bcrypt.service';
 import { PrismaService } from '@/database/prisma.service';
-import { PrismaClientKnownRequestError } from '@/database/generated/prisma/internal/prismaNamespace';
+import {
+  PrismaClientKnownRequestError,
+  UserGetPayload
+} from '@/database/generated/prisma/internal/prismaNamespace';
 import { User } from '@/database/generated/prisma/client';
 
 @Injectable()
@@ -29,5 +32,14 @@ export class UserService {
 
   async getUserByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async getUserById(
+    id: string
+  ): Promise<UserGetPayload<{ omit: { password: true } }> | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      omit: { password: true }
+    });
   }
 }

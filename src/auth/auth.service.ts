@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException
+} from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { UserService } from '@/user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { BcryptService } from '@/infrastructure/hash/bcrypt.service';
 import { AccessTokenService } from './access-token.service';
+import { UserResponseDto } from '@/user/dto/user-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,5 +43,13 @@ export class AuthService {
     });
 
     return { access_token };
+  }
+
+  async getMe(id: string): Promise<UserResponseDto> {
+    const user = await this.userService.getUserById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 }

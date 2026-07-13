@@ -9,6 +9,7 @@ import { HashModule } from '@/infrastructure/hash/hash.module';
 @Module({
   imports: [UserModule, JwtModule, HashModule],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenService]
+  providers: [AuthService, AccessTokenService],
+  exports: [AccessTokenService]
 })
 export class AuthModule {}

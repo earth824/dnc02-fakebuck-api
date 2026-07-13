@@ -19,4 +19,10 @@ export class AccessTokenService {
       })
     });
   }
+
+  verify(token: string): Promise<AccessTokenPayload> {
+    return this.jwtService.verifyAsync(token, {
+      secret: this.configService.get('ACCESS_TOKEN_SECRET', { infer: true })
+    });
+  }
 }
