@@ -1,0 +1,55 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/database/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String   @unique
+  password   String
+  firstName  String   @map("first_name")
+  lastName   String   @map("last_name")
+  dob        DateTime @db.Date
+  gender     Gender
+  avatarUrl  String?  @map("avatar_url")
+  coverUrl   String?  @map("cover_url")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  usersA     Friend[] @relation("userA")
+  usersB     Friend[] @relation("userB")
+  requesters Friend[] @relation("requester")
+
+  @@map("users")
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+}
+
+model Friend {
+  id          Int          @id @default(autoincrement())
+  userAId     String       @map("user_a_id") @db.Uuid
+  userBId     String       @map("user_b_id") @db.Uuid
+  requesterId String       @map("requester_id") @db.Uuid
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+  friendSince DateTime?    @map("friend_since") @db.Timestamptz()
+  userA       User         @relation("userA", fields: [userAId], references: [id])
+  userB       User         @relation("userB", fields: [userBId], references: [id])
+  requester   User         @relation("requester", fields: [requesterId], references: [id])
+
+  @@unique([userAId, userBId])
+  @@map("friends")
+}
