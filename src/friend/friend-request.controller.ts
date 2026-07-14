@@ -45,6 +45,7 @@ export class FriendRequestController {
     return { message: 'The request has been accepted' };
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post(':requesterId/reject')
   async rejectRequest(
     @CurrentUser('sub') currentUserId: string,
@@ -62,5 +63,9 @@ export class FriendRequestController {
   }
 
   @Get('outgoing')
-  getOutgoingRequest() {}
+  async getOutgoingRequest(
+    @CurrentUser('sub') currentUserId: string
+  ): Promise<UserResponseDto[]> {
+    return this.friendRequestService.getOutgoingRequest(currentUserId);
+  }
 }

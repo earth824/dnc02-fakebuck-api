@@ -71,7 +71,7 @@ export class FriendRequestService {
 
   async acceptRequest(requesterId: string, recipientId: string): Promise<void> {
     const { count } = await this.prisma.friend.updateMany({
-      data: { status: 'ACCEPTED' },
+      data: { status: 'ACCEPTED', friendSince: new Date() },
       where: {
         status: 'PENDING',
         requesterId,
@@ -103,5 +103,22 @@ export class FriendRequestService {
     });
 
     return result.map((el) => el.requester);
+  }
+
+  async getOutgoingRequest(requesterId: string): Promise<UserResponseDto[]> {
+    const result = await this.prisma.friend.findMany({
+      where: {
+        status: 'PENDING',
+        requesterId,
+        userAId: requesterId
+      },
+      select: {
+        userB: {
+          omit: { password: true }
+        }
+      }
+    });
+
+    return result.map((el) => el.userB);
   }
 }
