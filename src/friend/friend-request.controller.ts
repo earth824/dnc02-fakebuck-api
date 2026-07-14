@@ -11,6 +11,7 @@ import {
   Post
 } from '@nestjs/common';
 import { FriendRequestService } from './friend-request.service';
+import { UserResponseDto } from '@/user/dto/user-response.dto';
 
 @Controller('friends/request')
 export class FriendRequestController {
@@ -54,7 +55,11 @@ export class FriendRequestController {
   }
 
   @Get('incoming')
-  getIncomingRequest() {}
+  async getIncomingRequest(
+    @CurrentUser('sub') currentUserId: string
+  ): Promise<UserResponseDto[]> {
+    return this.friendRequestService.getIncomingRequest(currentUserId);
+  }
 
   @Get('outgoing')
   getOutgoingRequest() {}

@@ -1,5 +1,6 @@
 import { PrismaClientKnownRequestError } from '@/database/generated/prisma/internal/prismaNamespace';
 import { PrismaService } from '@/database/prisma.service';
+import { UserResponseDto } from '@/user/dto/user-response.dto';
 import {
   BadRequestException,
   ConflictException,
@@ -83,5 +84,24 @@ export class FriendRequestService {
         'The relationship between these two users cannot be found'
       );
     }
+  }
+
+  async getIncomingRequest(recipientId: string): Promise<UserResponseDto[]> {
+    const result = await this.prisma.friend.findMany({
+      where: {
+        status: 'PENDING',
+        requesterId: {
+          not: recipientId
+        },
+        userAId: recipientId
+      },
+      select: {
+        requester: {
+          omit: { password: true }
+        }
+      }
+    });
+
+    return result.map((el) => el.requester);
   }
 }
