@@ -7,12 +7,14 @@ import {
   UserGetPayload
 } from '@/database/generated/prisma/internal/prismaNamespace';
 import { User } from '@/database/generated/prisma/client';
+import { CloudinaryService } from '@/infrastructure/upload/cloudinary.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly bcryptService: BcryptService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService
   ) {}
 
   async createUser(input: UserCreateInput): Promise<void> {
@@ -41,5 +43,29 @@ export class UserService {
       where: { id },
       omit: { password: true }
     });
+  }
+
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File
+  ): Promise<string> {
+    const avatarUrl = await this.cloudinaryService.upload(file);
+    await this.prisma.user.update({
+      data: { avatarUrl },
+      where: { id: userId }
+    });
+    return avatarUrl;
+  }
+
+  async uploadCover(
+    userId: string,
+    file: Express.Multer.File
+  ): Promise<string> {
+    const coverUrl = await this.cloudinaryService.upload(file);
+    await this.prisma.user.update({
+      data: { coverUrl },
+      where: { id: userId }
+    });
+    return coverUrl;
   }
 }
