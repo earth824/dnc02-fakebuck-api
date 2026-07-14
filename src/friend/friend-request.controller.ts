@@ -4,6 +4,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post
@@ -24,13 +26,32 @@ export class FriendRequestController {
   }
 
   @Delete(':recipientId')
-  cancelRequest() {}
+  async cancelRequest(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('recipientId', ParseUUIDPipe) recipientId: string
+  ): Promise<MessageResponseDto> {
+    await this.friendRequestService.deleteRequest(currentUserId, recipientId);
+    return { message: 'The request has been cancelled' };
+  }
 
+  @HttpCode(HttpStatus.OK)
   @Post(':requesterId/accept')
-  acceptRequest() {}
+  async acceptRequest(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('requesterId', ParseUUIDPipe) requesterId: string
+  ): Promise<MessageResponseDto> {
+    await this.friendRequestService.acceptRequest(requesterId, currentUserId);
+    return { message: 'The request has been accepted' };
+  }
 
   @Post(':requesterId/reject')
-  rejectRequest() {}
+  async rejectRequest(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('requesterId', ParseUUIDPipe) requesterId: string
+  ): Promise<MessageResponseDto> {
+    await this.friendRequestService.deleteRequest(requesterId, currentUserId);
+    return { message: 'The request has been rejected' };
+  }
 
   @Get('incoming')
   getIncomingRequest() {}

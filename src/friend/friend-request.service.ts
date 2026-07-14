@@ -51,4 +51,37 @@ export class FriendRequestService {
       throw error;
     }
   }
+
+  async deleteRequest(requesterId: string, recipientId: string): Promise<void> {
+    const { count } = await this.prisma.friend.deleteMany({
+      where: {
+        status: 'PENDING',
+        requesterId,
+        OR: [{ userAId: recipientId }, { userBId: recipientId }]
+      }
+    });
+
+    if (count === 0) {
+      throw new NotFoundException(
+        'The relationship between these two users cannot be found'
+      );
+    }
+  }
+
+  async acceptRequest(requesterId: string, recipientId: string): Promise<void> {
+    const { count } = await this.prisma.friend.updateMany({
+      data: { status: 'ACCEPTED' },
+      where: {
+        status: 'PENDING',
+        requesterId,
+        OR: [{ userAId: recipientId }, { userBId: recipientId }]
+      }
+    });
+
+    if (count === 0) {
+      throw new NotFoundException(
+        'The relationship between these two users cannot be found'
+      );
+    }
+  }
 }
