@@ -42,7 +42,9 @@ export class AuthService {
       email: user.email
     });
 
-    return { access_token };
+    const { password, ...rest } = user;
+
+    return { access_token, user: rest };
   }
 
   async getMe(id: string): Promise<UserResponseDto> {
