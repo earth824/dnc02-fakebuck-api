@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Patch,
   UploadedFile,
   UseInterceptors
@@ -8,6 +10,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 
 @Controller('users')
 export class UserController {
@@ -31,8 +34,13 @@ export class UserController {
     return this.userService.uploadCover(userId, file);
   }
 
-  @Get(':userId/profile')
-  getUserProfile() {}
+  @Get(':targetUserId/profile')
+  async getUserProfile(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('targetUserId', ParseUUIDPipe) targetUserId: string
+  ): Promise<UserProfileResponseDto> {
+    return this.userService.getUserProfile(currentUserId, targetUserId);
+  }
 }
 
 // FileInterceptor: single field => single file (@UploadedFile)

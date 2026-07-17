@@ -1,6 +1,7 @@
 import { PrismaService } from '@/database/prisma.service';
 import { UserResponseDto } from '@/user/dto/user-response.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { RelationshipStatus } from './types/friend.type';
 
 @Injectable()
 export class FriendService {
@@ -40,5 +41,35 @@ export class FriendService {
         'These two users have never become friend together'
       );
     }
+  }
+
+  async getRelationshipBetweenUser(
+    currentUserId: string,
+    targetUserId: string
+  ): Promise<RelationshipStatus> {
+    if (currentUserId === targetUserId) {
+      return 'SELF';
+    }
+
+    const relationship = await this.prisma.friend.findFirst({
+      where: {
+        userAId: currentUserId,
+        userBId: targetUserId
+      }
+    });
+
+    if (!relationship) {
+      return 'NONE';
+    }
+
+    if (relationship.status === 'ACCEPTED') {
+      return 'FRIEND';
+    }
+
+    if (relationship.requesterId === currentUserId) {
+      return 'REQUEST_SENT';
+    }
+
+    return 'REQUEST_RECIEVED';
   }
 }

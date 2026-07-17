@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
 import { UserCreateInput } from './types/user.type';
 import { BcryptService } from '@/infrastructure/hash/bcrypt.service';
 import { PrismaService } from '@/database/prisma.service';
@@ -8,13 +12,16 @@ import {
 } from '@/database/generated/prisma/internal/prismaNamespace';
 import { User } from '@/database/generated/prisma/client';
 import { CloudinaryService } from '@/infrastructure/upload/cloudinary.service';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { FriendService } from '@/friend/friend.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly bcryptService: BcryptService,
     private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly friendService: FriendService
   ) {}
 
   async createUser(input: UserCreateInput): Promise<void> {
@@ -67,5 +74,22 @@ export class UserService {
       where: { id: userId }
     });
     return coverUrl;
+  }
+
+  async getUserProfile(
+    currentUserId: string,
+    targetUserId: string
+  ): Promise<UserProfileResponseDto> {
+    const user = await this.getUserById(targetUserId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [friends, relationshipStatus] = await Promise.all([
+      this.friendService.getFriend(targetUserId),
+      this.friendService.getRelationshipBetweenUser(currentUserId, targetUserId)
+    ]);
+
+    return { user, friends, relationshipStatus };
   }
 }
