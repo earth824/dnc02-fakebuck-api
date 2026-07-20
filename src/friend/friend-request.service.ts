@@ -1,16 +1,23 @@
 import { PrismaClientKnownRequestError } from '@/database/generated/prisma/internal/prismaNamespace';
 import { PrismaService } from '@/database/prisma.service';
 import { UserResponseDto } from '@/user/dto/user-response.dto';
+import { UserService } from '@/user/user.service';
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
 
 @Injectable()
 export class FriendRequestService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService
+  ) {}
 
   async sendRequest(requesterId: string, recipientId: string): Promise<void> {
     if (requesterId === recipientId) {
@@ -121,4 +128,31 @@ export class FriendRequestService {
 
     return result.map((el) => el.userB);
   }
+
+  async getRelationUser(targetUserId: string): Promise<UserResponseDto[]> {
+    const result = await this.prisma.friend.findMany({
+      where: {
+        userAId: targetUserId
+      },
+      select: {
+        userB: {
+          omit: { password: true }
+        }
+      }
+    });
+
+    return result.map((el) => el.userB);
+  }
+
+  async getSuggestionFriend(targetUserId: string): Promise<UserResponseDto[]> {
+    const relationUsers = await this.getRelationUser(targetUserId);
+    const suggestionUsers = await this.userService.getUserByExcludeId([
+      ...relationUsers.map((user) => user.id),
+      targetUserId
+    ]);
+    return suggestionUsers;
+  }
 }
+
+// const a = new A(); // new A(instance of B)
+// const b = new B(); // new B(instance of A)

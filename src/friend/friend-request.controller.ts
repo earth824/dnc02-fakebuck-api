@@ -68,4 +68,11 @@ export class FriendRequestController {
   ): Promise<UserResponseDto[]> {
     return this.friendRequestService.getOutgoingRequest(currentUserId);
   }
+
+  @Get('suggestion')
+  async getSuggestionFriend(
+    @CurrentUser('sub') currentUserId: string
+  ): Promise<UserResponseDto[]> {
+    return this.friendRequestService.getSuggestionFriend(currentUserId);
+  }
 }

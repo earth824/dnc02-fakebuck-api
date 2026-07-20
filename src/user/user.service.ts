@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
@@ -21,6 +23,7 @@ export class UserService {
     private readonly bcryptService: BcryptService,
     private readonly prisma: PrismaService,
     private readonly cloudinaryService: CloudinaryService,
+    @Inject(forwardRef(() => FriendService))
     private readonly friendService: FriendService
   ) {}
 
@@ -91,5 +94,20 @@ export class UserService {
     ]);
 
     return { user, friends, relationshipStatus };
+  }
+
+  getUserByExcludeId(
+    ids: string[]
+  ): Promise<UserGetPayload<{ omit: { password: true } }>[]> {
+    return this.prisma.user.findMany({
+      where: {
+        id: {
+          notIn: ids
+        }
+      },
+      omit: {
+        password: true
+      }
+    });
   }
 }
